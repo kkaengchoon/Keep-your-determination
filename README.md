@@ -1,5 +1,5 @@
 # 📜 작심지킴
-<img width="665" alt="작심지킴" src="https://github.com/user-attachments/assets/5c447bcc-ef5d-4c95-9d8a-dc9542586492">
+<img scr="![자격증 취득 보조 앱_최종-005 (1)](https://github.com/user-attachments/assets/6eadca64-97ef-40b0-bf8c-404ccce85252)" width="400" height="300">
 
 자격증을 취득할 때 도움을 줄 수 있는 것을 직접 찾지 않고 시간 낭비를 줄일 수 있게 추천하는 서비스입니다.
 > 202204289 홍유택 202284045 강하나
