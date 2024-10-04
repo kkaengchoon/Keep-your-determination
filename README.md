@@ -7,7 +7,7 @@
 ## 🌟 서비스 소개
 
 ### ❓ 작심지킴이란?
-<img width="500" alt="작심지킴" src="https://github.com/user-attachments/assets/15df2560-bab2-4865-91bd-1cd5302dd6a0">
+<img width="500" alt="자격증 취득 보조 앱_최종-005" src="https://github.com/user-attachments/assets/a1b50b69-cf42-49ab-bf48-4cec440625c3">
 
 작심삼일로 끝나는 사용자들이 목표를 달성할 수 있도록 캘린더 API를 활용하여,자격증 취득 보조 서비스는 자격증 공부를 보다 효율적으로 할 수 있도록 다양한 학습 도구와 자료를 제공하는 서비스입니다. 
 저희 서비스를 통해 여러분은 더 이상 정보 검색에 시간을 낭비하지 않고, 공부에 집중할 수 있습니다.
