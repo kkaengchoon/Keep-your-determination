@@ -53,7 +53,7 @@ def logout():
 # 구글 로그인 함수
 def login():
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-        "C:\chat-gpt-prg\keep-your-determination_K\client_secret_529596907303-g8ml5thjfis3grspuqm01sc7jjjr18f9.apps.googleusercontent.com.json", 
+        "C:\\chat-gpt-prg\\keep-your-determination_K\\client_secret_529596907303-g8ml5thjfis3grspuqm01sc7jjjr18f9.apps.googleusercontent.com.json", 
         scopes=['https://www.googleapis.com/auth/calendar'])
     creds = flow.run_local_server(port=0)
     
@@ -87,17 +87,40 @@ def fetch_events(service):
     events = events_result.get('items', [])
     return events
 
-# FullCalendar를 사용한 캘린더 UI 함수
-def render_fullcalendar(events, calendar_height=600):
+# 일정 수정 함수
+def update_event(service, event_id, new_title):
+    event = service.events().get(calendarId='primary', eventId=event_id).execute()
+
+    # 이벤트 제목 수정
+    event['summary'] = new_title
+
+    updated_event = service.events().update(calendarId='primary', eventId=event['id'], body=event).execute()
+    return updated_event
+
+# FullCalendar 렌더링 함수
+def render_fullcalendar(events, calendar_height=600, bg_color="white", text_color="black"):
     events_json = [{'title': event['summary'], 'start': event['start'].get('dateTime', event['start'].get('date'))} for event in events]
     
-    # CSS 스타일을 Streamlit에 삽입 (글씨체와 크기 조정)
-    st.markdown("""
+    # CSS 스타일을 Streamlit에 삽입
+    st.markdown(f"""
         <style>
-        .fc {
-            font-family: 'Arial', sans-serif;
-            font-size: 16px;
-        }
+        #calendar {{
+            background-color: {bg_color} !important;  /* 사용자 지정 배경색 */
+        }}
+        .fc .fc-header-toolbar {{
+            background-color: {bg_color} !important; /* 헤더 배경을 사용자 지정 색으로 */
+            color: {text_color} !important; /* 헤더 텍스트 색상 */
+        }}
+        .fc .fc-daygrid-day {{
+            background-color: {bg_color} !important; /* 날짜 셀 배경 */
+            color: {text_color} !important;  /* 날짜 셀 텍스트 */
+        }}
+        .fc .fc-daygrid-day-number {{
+            color: {text_color} !important;  /* 날짜 번호 색상 */
+        }}
+        .fc .fc-daygrid-event {{
+            color: {text_color} !important;  /* 이벤트 텍스트 색상 */
+        }}
         </style>
     """, unsafe_allow_html=True)
 
@@ -128,9 +151,6 @@ def render_fullcalendar(events, calendar_height=600):
     
     components.html(calendar_html, height=calendar_height)
 
-# 페이지 설정 및 제목 설정
-st.set_page_config(page_title="캘린더", page_icon="📅")  # 페이지 타이틀과 아이콘 설정
-st.title('캘린더 페이지')  # 페이지 제목
 
 # 기본값으로 빈 리스트를 설정하여 'events' 변수가 정의되지 않음으로 인한 오류 방지
 events = []
