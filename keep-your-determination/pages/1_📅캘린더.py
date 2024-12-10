@@ -66,17 +66,28 @@ def refresh_credentials(creds):
     return creds
 
 def logout():
-    try:
-        if "credentials" in st.session_state:
-            del st.session_state["credentials"]  # 세션 상태에서 자격 증명 제거
-        if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)  # 파일 삭제
-        st.success("성공적으로 로그아웃되었습니다.")
-        time.sleep(1)  # 로그아웃 메시지 표시를 위한 대기
-        # URL 리다이렉션
-        st.experimental_set_query_params(logout="true")  # 상태를 초기화
-    except Exception as e:
-        st.error(f"로그아웃 중 오류 발생: {e}")
+    if "credentials" not in st.session_state:
+        creds = None
+        service = None
+        st.warning("로그인하세요.")
+        if st.button("로그인"):
+            try:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    CLIENT_SECRET_FILE,
+                    scopes=["https://www.googleapis.com/auth/calendar"]
+                )
+                creds = flow.run_local_server(port=0)
+                st.session_state["credentials"] = creds
+                service = build('calendar', 'v3', credentials=creds)
+                st.success("로그인 성공!")
+            except Exception as e:
+                st.error(f"로그인 중 오류 발생: {e}")
+    else:
+        creds = st.session_state["credentials"]
+        service = build('calendar', 'v3', credentials=creds)
+        st.success("로그인 상태 유지 중")
+        if st.button("로그아웃"):
+            logout()
 
 def login():
     try:
