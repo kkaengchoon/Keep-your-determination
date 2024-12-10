@@ -1,20 +1,36 @@
+import json
 import streamlit as st
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from datetime import datetime, date, time
+from datetime import datetime, date
 import streamlit.components.v1 as components
 import os
-import json
 from google.auth.transport.requests import Request
 
-# 파일 경로 설정
-CREDENTIALS_FILE = os.path.join(os.getcwd(), "google_credentials.json")
-CLIENT_SECRET_FILE = os.path.join(os.getcwd(), "client_secret_529596907303-j96e1i1hsf6mmtsj5nas3t110v4fvpup.apps.googleusercontent.com.json")
+# Google Client Secret 파일 생성
+def create_client_secret_file():
+    client_secret_content = st.secrets["google"]["client_secret"]
+    client_secret_path = "client_secret.json"
+    with open(client_secret_path, "w") as f:
+        f.write(client_secret_content)
+    return client_secret_path
+
+# Google Credentials 파일 생성
+def create_credentials_file():
+    credentials_content = st.secrets["google"]["credentials"]
+    credentials_path = "google_credentials.json"
+    with open(credentials_path, "w") as f:
+        f.write(credentials_content)
+    return credentials_path
+
+# 동적으로 파일 생성
+CLIENT_SECRET_FILE = create_client_secret_file()
+CREDENTIALS_FILE = create_credentials_file()
 
 # Streamlit 설정
 st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
-st.title("📅 Google Calendar")
+st.title("📅 Google Calendar 관리")
 
 # 자격 증명 관련 함수
 def creds_to_dict(creds):
