@@ -71,8 +71,9 @@ def logout():
         if os.path.exists(CREDENTIALS_FILE):
             os.remove(CREDENTIALS_FILE)  # 파일 삭제
         st.success("성공적으로 로그아웃되었습니다.")
-        # 안전하게 새로고침
-        st.experimental_rerun()
+        time.sleep(1)  # 로그아웃 메시지 표시를 위한 대기
+        # URL 리다이렉션
+        st.experimental_set_query_params(logout="true")  # 상태를 초기화
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
