@@ -164,8 +164,8 @@ if "credentials" not in st.session_state:
 # 로그인 상태에 따른 UI 렌더링
 if st.session_state["credentials"]:
     service = create_service()
-    st.sidebar.success("로그인 상태 유지 중")
-    if st.sidebar.button("로그아웃"):
+    st.success("로그인 상태 유지 중")
+    if st.button("로그아웃"):
         logout()
 
     # 캘린더 관리 UI
@@ -237,6 +237,6 @@ if st.session_state["credentials"]:
         else:
             st.warning("삭제 가능한 일정이 없습니다.")
 else:
-    st.sidebar.warning("로그인이 필요합니다.")
-    if st.sidebar.button("로그인"):
+    st.warning("로그인이 필요합니다.")
+    if st.button("로그인"):
         login()
