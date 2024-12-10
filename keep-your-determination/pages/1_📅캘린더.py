@@ -65,42 +65,39 @@ def refresh_credentials(creds):
         st.error(f"자격 증명을 새로고침하는 중 오류 발생: {e}")
     return creds
 
-# 로그인 상태 확인 및 관리
-if "credentials" not in st.session_state:
-    st.session_state["credentials"] = None  # 세션 상태 초기화
-
-if st.session_state["credentials"]:
-    # 로그인 상태
-    st.success("로그인 상태 유지 중")
-    if st.button("로그아웃", key="logout_button"):
-        # 세션 상태 초기화 및 자격 증명 파일 삭제
-        del st.session_state["credentials"]
-        if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)  # 파일 삭제
-        st.experimental_set_query_params()  # URL 파라미터 초기화 (새로고침 효과)
-        st.success("성공적으로 로그아웃되었습니다.")
-else:
-    # 로그아웃 상태
-    st.warning("로그인하세요.")
-    if st.button("로그인", key="login_button"):
-        try:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CLIENT_SECRET_FILE,
-                scopes=["https://www.googleapis.com/auth/calendar"]
-            )
-
-            # 브라우저 없는 환경에서는 run_console()을 사용
-            if "no_browser" in st.session_state and st.session_state["no_browser"]:
-                st.write("브라우저 없이 동작하도록 설정되었습니다.")
-                creds = flow.run_console()
-            else:
-                creds = flow.run_local_server(port=0)
-
-            # 세션 상태에 자격 증명 저장
+# 로그인 함수
+def login():
+    try:
+        flow = InstalledAppFlow.from_client_secrets_file(
+            CLIENT_SECRET_FILE,
+            scopes=["https://www.googleapis.com/auth/calendar"]
+        )
+        # 브라우저 없는 환경에서 인증 URL 제공 및 코드 입력받기
+        auth_url, _ = flow.authorization_url(prompt="consent")
+        st.write(f"[인증 URL을 클릭하세요]({auth_url})")
+        auth_code = st.text_input("인증 코드를 입력하세요:")
+        if auth_code:
+            flow.fetch_token(code=auth_code)
+            creds = flow.credentials
             st.session_state["credentials"] = creds
+            save_credentials_to_file(creds)
             st.success("로그인 성공!")
-        except Exception as e:
-            st.error(f"로그인 중 오류 발생: {e}")
+            return creds
+    except Exception as e:
+        st.error(f"로그인 중 오류 발생: {e}")
+        return None
+
+# 로그아웃 함수
+def logout():
+    try:
+        if "credentials" in st.session_state:
+            del st.session_state["credentials"]
+        if os.path.exists(CREDENTIALS_FILE):
+            os.remove(CREDENTIALS_FILE)
+        st.success("성공적으로 로그아웃되었습니다.")
+        st.experimental_rerun()
+    except Exception as e:
+        st.error(f"로그아웃 중 오류 발생: {e}")
 
 # 캘린더 일정 관련 함수
 def add_event(service, summary, location, description, start_time, end_time, time_zone='Asia/Seoul'):
