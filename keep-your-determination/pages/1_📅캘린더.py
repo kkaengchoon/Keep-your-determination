@@ -49,7 +49,10 @@ def logout():
         st.experimental_rerun()
 
 def login():
-    client_secrets = st.secrets["installed"]
+    # Google OAuth 클라이언트 정보를 Streamlit Secrets에서 로드
+    client_secrets = {
+        "installed": st.secrets["installed"]
+    }
 
     # OAuth 플로우 설정
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
