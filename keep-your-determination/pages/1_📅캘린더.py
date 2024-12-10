@@ -89,20 +89,6 @@ def logout():
         if st.button("로그아웃"):
             logout()
 
-def login():
-    try:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            CLIENT_SECRET_FILE,
-            scopes=['https://www.googleapis.com/auth/calendar']
-        )
-        creds = flow.run_local_server(port=0)
-        st.session_state["credentials"] = creds
-        save_credentials_to_file(creds)
-        return creds
-    except Exception as e:
-        st.error(f"로그인 중 오류 발생: {e}")
-        return None
-
 # 캘린더 일정 관련 함수
 def add_event(service, summary, location, description, start_time, end_time, time_zone='Asia/Seoul'):
     try:
