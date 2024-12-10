@@ -106,6 +106,29 @@ def add_event(service, summary, location, description, start_time, end_time, tim
     except Exception as e:
         st.error(f"일정 추가 중 오류 발생: {e}")
 
+def update_event(service, event_id, summary, start_time, end_time, time_zone='Asia/Seoul'):
+    try:
+        event = {
+            'summary': summary,
+            'start': {
+                'dateTime': start_time.isoformat(),
+                'timeZone': time_zone,
+            },
+            'end': {
+                'dateTime': end_time.isoformat(),
+                'timeZone': time_zone,
+            },
+        }
+        return service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
+    except Exception as e:
+        st.error(f"일정 수정 중 오류 발생: {e}")
+
+def delete_event(service, event_id):
+    try:
+        service.events().delete(calendarId='primary', eventId=event_id).execute()
+    except Exception as e:
+        st.error(f"일정 삭제 중 오류 발생: {e}")
+
 def fetch_events(service):
     try:
         now = datetime.utcnow().isoformat() + 'Z'
@@ -186,6 +209,33 @@ if service:
                 render_fullcalendar(events)
             except Exception as e:
                 st.error(f"일정 추가 중 오류 발생: {e}")
+
+    # 일정 수정
+    with st.expander("기존 일정 수정"):
+        if events:
+            selected_event = st.selectbox(
+                "수정할 이벤트 선택",
+                events,
+                format_func=lambda e: e['summary'] if 'summary' in e else '제목 없음'
+            )
+            new_title = st.text_input("새로운 제목", selected_event['summary'])
+            new_start_time = st.text_input("새로운 시작 시간 (HH:MM)", "09:00")
+            new_end_time = st.text_input("새로운 종료 시간 (HH:MM)", "10:00")
+            if st.button("일정 수정"):
+                try:
+                    event_id = selected_event["id"]
+                    start_time = datetime.strptime(new_start_time, "%H:%M")
+                    end_time = datetime.strptime(new_end_time, "%H:%M")
+                    new_start_datetime = datetime.combine(date.today(), start_time)
+                    new_end_datetime = datetime.combine(date.today(), end_time)
+                    update_event(service, event_id, new_title, new_start_datetime, new_end_datetime)
+                    st.success("일정이 수정되었습니다.")
+                    events = fetch_events(service)
+                    render_fullcalendar(events)
+                except Exception as e:
+                    st.error(f"일정 수정 중 오류 발생: {e}")
+        else:
+            st.warning("수정 가능한 일정이 없습니다.")
 
     # 일정 삭제
     with st.expander("기존 일정 삭제"):
