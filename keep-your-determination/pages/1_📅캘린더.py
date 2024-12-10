@@ -65,12 +65,16 @@ def refresh_credentials(creds):
     return creds
 
 def logout():
-    if "credentials" in st.session_state:
-        del st.session_state["credentials"]  # 세션 상태에서 자격 증명 제거
-    if os.path.exists(CREDENTIALS_FILE):
-        os.remove(CREDENTIALS_FILE)  # 파일 삭제
-    st.success("성공적으로 로그아웃되었습니다.")
-    st.experimental_rerun()
+    try:
+        if "credentials" in st.session_state:
+            del st.session_state["credentials"]  # 세션 상태에서 자격 증명 제거
+        if os.path.exists(CREDENTIALS_FILE):
+            os.remove(CREDENTIALS_FILE)  # 파일 삭제
+        st.success("성공적으로 로그아웃되었습니다.")
+        # 안전하게 새로고침
+        st.experimental_rerun()
+    except Exception as e:
+        st.error(f"로그아웃 중 오류 발생: {e}")
 
 def login():
     try:
