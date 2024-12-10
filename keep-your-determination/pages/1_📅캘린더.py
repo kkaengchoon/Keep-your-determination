@@ -105,10 +105,9 @@ if st.session_state["credentials"]:
     # 로그인 상태
     creds = refresh_credentials(st.session_state["credentials"])
     service = build("calendar", "v3", credentials=creds)
-    st.sidebar.success("로그인 상태 유지 중")
 
     # 로그아웃 버튼
-    if st.sidebar.button("로그아웃"):
+    if st.button("로그아웃"):
         logout()
 
 # 캘린더 일정 관련 함수
@@ -263,5 +262,7 @@ if service:
 else:
     # 로그아웃 상태
     st.warning("로그인이 필요합니다.")
+    
+    # 로그인 버튼
     if st.button("로그인"):
         login()
