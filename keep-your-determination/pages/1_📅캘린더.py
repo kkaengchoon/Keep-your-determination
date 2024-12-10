@@ -90,9 +90,9 @@ def logout():
         if "credentials" in st.session_state:
             del st.session_state["credentials"]  # 세션 상태 초기화
         if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)  # 파일 삭제
+            os.remove(CREDENTIALS_FILE)  # 자격 증명 파일 삭제
         st.success("성공적으로 로그아웃되었습니다.")
-        st.experimental_rerun()  # 상태를 업데이트하고 스크립트 재실행
+        st.experimental_set_query_params()  # URL 파라미터 초기화로 새로고침 효과 제공
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
@@ -100,15 +100,15 @@ def logout():
 if "credentials" not in st.session_state:
     st.session_state["credentials"] = load_credentials_from_file()
 
-# 로그인 상태 확인 및 UI 렌더링
+# 로그인 상태 확인
 if st.session_state["credentials"]:
     # 로그인 상태
     creds = refresh_credentials(st.session_state["credentials"])
     service = build("calendar", "v3", credentials=creds)
-    st.success("로그인 상태 유지 중")
-    
+    st.sidebar.success("로그인 상태 유지 중")
+
     # 로그아웃 버튼
-    if st.button("로그아웃"):
+    if st.sidebar.button("로그아웃"):
         logout()
 
 # 캘린더 일정 관련 함수
@@ -260,3 +260,8 @@ if service:
                     st.error(f"일정 삭제 중 오류 발생: {e}")
         else:
             st.warning("삭제 가능한 일정이 없습니다.")
+else:
+    # 로그아웃 상태
+    st.warning("로그인이 필요합니다.")
+    if st.button("로그인"):
+        login()
