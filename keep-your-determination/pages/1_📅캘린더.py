@@ -10,7 +10,7 @@ from google.auth.transport.requests import Request
 
 # 파일 경로 설정
 CREDENTIALS_FILE = os.path.join(os.getcwd(), "google_credentials.json")
-CLIENT_SECRET_FILE = os.path.join(os.getcwd(), "client_secret.json")
+CLIENT_SECRET_FILE = os.path.join(os.getcwd(), "client_secret_529596907303-j96e1i1hsf6mmtsj5nas3t110v4fvpup.apps.googleusercontent.com.json")
 
 # Streamlit 설정
 st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
