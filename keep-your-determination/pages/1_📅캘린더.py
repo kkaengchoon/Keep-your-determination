@@ -65,7 +65,6 @@ def refresh_credentials(creds):
         st.error(f"자격 증명을 새로고침하는 중 오류 발생: {e}")
     return creds
 
-# 로그인 함수
 def login():
     try:
         flow = InstalledAppFlow.from_client_secrets_file(
@@ -87,15 +86,15 @@ def login():
         st.error(f"로그인 중 오류 발생: {e}")
         return None
 
-# 로그아웃 함수
 def logout():
     try:
         if "credentials" in st.session_state:
-            del st.session_state["credentials"]
+            del st.session_state["credentials"]  # 세션 상태 초기화
         if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)
+            os.remove(CREDENTIALS_FILE)  # 파일 삭제
         st.success("성공적으로 로그아웃되었습니다.")
-        st.experimental_rerun()
+        # URL 파라미터 초기화로 새로고침 효과 제공
+        st.experimental_set_query_params()  
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
