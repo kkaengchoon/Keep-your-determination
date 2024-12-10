@@ -65,13 +65,13 @@ def refresh_credentials(creds):
         st.error(f"자격 증명을 새로고침하는 중 오류 발생: {e}")
     return creds
 
+# 로그인 함수
 def login():
     try:
         flow = InstalledAppFlow.from_client_secrets_file(
             CLIENT_SECRET_FILE,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
-        # 브라우저 없는 환경에서 인증 URL 제공 및 코드 입력받기
         auth_url, _ = flow.authorization_url(prompt="consent")
         st.write(f"[인증 URL을 클릭하세요]({auth_url})")
         auth_code = st.text_input("인증 코드를 입력하세요:")
@@ -80,31 +80,39 @@ def login():
             creds = flow.credentials
             st.session_state["credentials"] = creds
             save_credentials_to_file(creds)
-            st.success("로그인 성공!")
-            return creds
+            st.experimental_rerun()  # 상태를 업데이트하고 스크립트 재실행
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
-        return None
 
+# 로그아웃 함수
 def logout():
     try:
-        # 세션 상태 초기화
         if "credentials" in st.session_state:
-            del st.session_state["credentials"]
-        
-        # 자격 증명 파일 삭제
+            del st.session_state["credentials"]  # 세션 상태 초기화
         if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)
-
-        # 서비스 객체 초기화
-        global service
-        service = None
-
-        # 성공 메시지 및 URL 초기화
+            os.remove(CREDENTIALS_FILE)  # 파일 삭제
         st.success("성공적으로 로그아웃되었습니다.")
-        st.experimental_set_query_params()  # URL 파라미터 초기화
+        st.experimental_rerun()  # 상태를 업데이트하고 스크립트 재실행
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
+
+# 로그인 상태 초기화
+if "credentials" not in st.session_state:
+    st.session_state["credentials"] = load_credentials_from_file()
+
+# 로그인 상태 확인 및 UI 렌더링
+if st.session_state["credentials"]:
+    # 로그인 상태
+    creds = refresh_credentials(st.session_state["credentials"])
+    service = build("calendar", "v3", credentials=creds)
+    st.sidebar.success("로그인 상태 유지 중")
+    if st.sidebar.button("로그아웃"):
+        logout()
+else:
+    # 로그아웃 상태
+    st.warning("로그인이 필요합니다.")
+    if st.button("로그인"):
+        login()
 
 # 캘린더 일정 관련 함수
 def add_event(service, summary, location, description, start_time, end_time, time_zone='Asia/Seoul'):
@@ -186,26 +194,6 @@ def render_fullcalendar(events, calendar_height=600):
         components.html(calendar_html, height=calendar_height)
     except Exception as e:
         st.error(f"캘린더 렌더링 중 오류 발생: {e}")
-
-# 로그인 상태 확인
-if "credentials" not in st.session_state:
-    creds = load_credentials_from_file()
-    if creds:
-        st.session_state["credentials"] = creds
-
-if "credentials" in st.session_state:
-    creds = st.session_state["credentials"]
-    creds = refresh_credentials(creds)
-    service = build('calendar', 'v3', credentials=creds)
-    st.success("로그인 상태 유지 중")
-    if st.button("로그아웃"):
-        logout()
-else:
-    service = None
-    if st.button("로그인"):
-        creds = login()
-        if creds:
-            service = build('calendar', 'v3', credentials=creds)
 
 # 일정 추가/수정/삭제 UI
 if service:
