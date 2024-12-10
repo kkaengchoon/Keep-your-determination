@@ -88,13 +88,21 @@ def login():
 
 def logout():
     try:
+        # 세션 상태 초기화
         if "credentials" in st.session_state:
-            del st.session_state["credentials"]  # 세션 상태 초기화
+            del st.session_state["credentials"]
+        
+        # 자격 증명 파일 삭제
         if os.path.exists(CREDENTIALS_FILE):
-            os.remove(CREDENTIALS_FILE)  # 파일 삭제
+            os.remove(CREDENTIALS_FILE)
+
+        # 서비스 객체 초기화
+        global service
+        service = None
+
+        # 성공 메시지 및 URL 초기화
         st.success("성공적으로 로그아웃되었습니다.")
-        # URL 파라미터 초기화로 새로고침 효과 제공
-        st.experimental_set_query_params()  
+        st.experimental_set_query_params()  # URL 파라미터 초기화
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
