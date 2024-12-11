@@ -7,6 +7,7 @@ from datetime import datetime, date
 import streamlit.components.v1 as components
 import os
 from google.auth.transport.requests import Request
+import socket
 
 # Streamlit 설정
 st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
@@ -65,13 +66,14 @@ def login():
             client_secret_path,
             scopes=['https://www.googleapis.com/auth/calendar']
         )
-        auth_url, _ = flow.authorization_url(prompt='consent')
-        st.write("[로그인 하려면 여기를 클릭하세요](%s)" % auth_url)
 
-        code = st.text_input("인증 코드를 입력하세요")
-        if st.button("확인"):
-            creds = flow.fetch_token(code=code)
-            return creds
+        # 배포 환경과 로컬 환경에 따라 리디렉션 URI 동적으로 설정
+        if socket.gethostname().endswith(".streamlit.app"):
+            creds = flow.run_local_server(port=8080, redirect_uri=f"https://{socket.gethostname()}/")
+        else:
+            creds = flow.run_local_server(port=8080)
+
+        return creds
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
         return None
