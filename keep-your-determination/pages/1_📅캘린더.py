@@ -10,8 +10,8 @@ import requests
 import time
 
 # Streamlit 설정
-st.set_page_config(page_title="캘린더", page_icon="\ud83d\udcc5", layout="centered")
-st.title("\ud83d\udcc5 Google Calendar 관리")
+st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
+st.title("📅 Google Calendar 관리")
 
 # 상태 기반 새로고침 함수
 def rerun():
