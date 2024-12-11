@@ -78,7 +78,7 @@ def login():
             creds = flow.credentials
             st.session_state["credentials"] = creds
             save_credentials_to_file(creds)
-            st.experimental_rerun()
+            st.experimental_set_query_params()  # 페이지 새로고침
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
 
@@ -90,7 +90,7 @@ def logout():
         if os.path.exists(CREDENTIALS_FILE):
             os.remove(CREDENTIALS_FILE)
         st.success("성공적으로 로그아웃되었습니다.")
-        st.experimental_set_query_params()  # 새로고침
+        st.experimental_set_query_params()  # 페이지 새로고침
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
