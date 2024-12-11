@@ -8,15 +8,6 @@ import streamlit.components.v1 as components
 import os
 from google.auth.transport.requests import Request
 
-# 사용자별 파일 업로드 및 관리
-uploaded_file = st.file_uploader("Google Client Secret 파일 업로드 (JSON 형식)", type=["json"])
-
-if uploaded_file:
-    client_secret_path = "client_secret.json"
-    with open(client_secret_path, "wb") as f:
-        f.write(uploaded_file.getvalue())
-    st.success("Client Secret 파일 업로드 완료!")
-
 # Streamlit 설정
 st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
 st.title("📅 Google Calendar 관리")
@@ -69,7 +60,7 @@ def logout(user_id):
 def login():
     try:
         flow = InstalledAppFlow.from_client_secrets_file(
-            client_secret_path,
+            "client_secret.json",
             scopes=['https://www.googleapis.com/auth/calendar']
         )
         creds = flow.run_local_server(port=0)
