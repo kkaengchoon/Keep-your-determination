@@ -13,13 +13,10 @@ import time
 st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
 st.title("📅 Google Calendar 관리")
 
-# experimental_rerun 메서드 생성
-def experimental_rerun():
-    """
-    Streamlit 페이지를 새로고침하는 메서드.
-    """
+# rerun 메서드 생성
+def rerun():
     st.session_state["force_rerun"] = time.time()  # 고유한 값을 사용해 상태를 업데이트하여 페이지 리로드
-    st.experimental_set_query_params(_=st.session_state["force_rerun"])
+    st.query_params(_=st.session_state["force_rerun"])
 
 # Google Client Secret 파일 생성
 def create_client_secret_file():
@@ -87,7 +84,7 @@ def login():
             creds = flow.credentials
             st.session_state["credentials"] = creds
             save_credentials_to_file(creds)
-            experimental_rerun()  # 페이지 새로고침
+            rerun()  # 페이지 새로고침
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
 
@@ -99,7 +96,7 @@ def logout():
         if os.path.exists(CREDENTIALS_FILE):
             os.remove(CREDENTIALS_FILE)
         st.success("성공적으로 로그아웃되었습니다.")
-        experimental_rerun()  # 페이지 새로고침
+        rerun()  # 페이지 새로고침
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
