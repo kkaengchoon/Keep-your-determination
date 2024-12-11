@@ -67,9 +67,10 @@ def login():
             scopes=['https://www.googleapis.com/auth/calendar']
         )
 
-        # 배포 환경과 로컬 환경에 따라 리디렉션 URI 동적으로 설정
+        # 배포 환경과 로컬 환경에 따라 처리 방식 변경
         if socket.gethostname().endswith(".streamlit.app"):
-            creds = flow.run_local_server(port=8080, redirect_uri=f"https://{socket.gethostname()}/")
+            st.warning("브라우저 인증이 지원되지 않으므로 콘솔 인증을 사용합니다.")
+            creds = flow.run_console()
         else:
             creds = flow.run_local_server(port=8080)
 
