@@ -16,7 +16,7 @@ st.title("📅 Google Calendar 관리")
 # rerun 메서드 생성
 def rerun():
     st.session_state["force_rerun"] = time.time()  # 고유한 값을 사용해 상태를 업데이트하여 페이지 리로드
-    st.query_params(_=st.session_state["force_rerun"])
+    st.experimental_set_query_params(_=st.session_state["force_rerun"])
 
 # Google Client Secret 파일 생성
 def create_client_secret_file():
