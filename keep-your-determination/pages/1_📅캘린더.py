@@ -65,8 +65,13 @@ def login():
             client_secret_path,
             scopes=['https://www.googleapis.com/auth/calendar']
         )
-        creds = flow.run_local_server(port=0)
-        return creds
+        auth_url, _ = flow.authorization_url(prompt='consent')
+        st.write("[로그인 하려면 여기를 클릭하세요](%s)" % auth_url)
+
+        code = st.text_input("인증 코드를 입력하세요")
+        if st.button("확인"):
+            creds = flow.fetch_token(code=code)
+            return creds
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
         return None
