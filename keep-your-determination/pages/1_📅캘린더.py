@@ -67,9 +67,9 @@ def login():
             scopes=['https://www.googleapis.com/auth/calendar']
         )
 
-        # 배포 환경과 로컬 환경에 따라 처리 방식 변경
+        # 배포 환경과 로컬 환경에 따라 인증 방식 선택
         if socket.gethostname().endswith(".streamlit.app"):
-            st.warning("브라우저 인증이 지원되지 않으므로 콘솔 인증을 사용합니다.")
+            st.info("CLI 인증 방식을 사용합니다. 아래에 표시된 URL을 열고 인증 코드를 입력하세요.")
             creds = flow.run_console()
         else:
             creds = flow.run_local_server(port=8080)
