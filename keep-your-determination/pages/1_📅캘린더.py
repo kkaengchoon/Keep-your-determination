@@ -15,8 +15,11 @@ st.title("📅 Google Calendar 관리")
 
 # rerun 메서드 생성
 def rerun():
+    """
+    Streamlit 페이지를 새로고침하는 메서드.
+    """
     st.session_state["force_rerun"] = time.time()  # 고유한 값을 사용해 상태를 업데이트하여 페이지 리로드
-    st.experimental_set_query_params(_=st.session_state["force_rerun"])
+    st.query_params.update({"_": st.session_state["force_rerun"]})
 
 # Google Client Secret 파일 생성
 def create_client_secret_file():
