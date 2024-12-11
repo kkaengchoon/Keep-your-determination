@@ -13,9 +13,6 @@ st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
 st.title("📅 Google Calendar 관리")
 
 # 사용자별 자격 증명 관리 함수
-def get_user_credential_file(user_id):
-    return f"google_credentials_{user_id}.json"
-
 def creds_to_dict(creds):
     return {
         'token': creds.token,
@@ -27,12 +24,12 @@ def creds_to_dict(creds):
     }
 
 def save_credentials_to_file(creds, user_id):
-    credentials_path = get_user_credential_file(user_id)
+    credentials_path = f"google_credentials_{user_id}.json"
     with open(credentials_path, "w") as f:
         json.dump(creds_to_dict(creds), f)
 
 def load_credentials_from_file(user_id):
-    credentials_path = get_user_credential_file(user_id)
+    credentials_path = f"google_credentials_{user_id}.json"
     if os.path.exists(credentials_path):
         with open(credentials_path, "r") as f:
             creds_dict = json.load(f)
@@ -50,7 +47,7 @@ def refresh_credentials(creds, user_id):
     return creds
 
 def logout(user_id):
-    credentials_path = get_user_credential_file(user_id)
+    credentials_path = f"google_credentials_{user_id}.json"
     if os.path.exists(credentials_path):
         os.remove(credentials_path)
         st.success("성공적으로 로그아웃되었습니다.")
@@ -59,8 +56,13 @@ def logout(user_id):
 
 def login():
     try:
+        client_secret_content = st.secrets["google"]["client_secret"]
+        client_secret_path = "client_secret.json"
+        with open(client_secret_path, "w") as f:
+            f.write(client_secret_content)
+
         flow = InstalledAppFlow.from_client_secrets_file(
-            "client_secret.json",
+            client_secret_path,
             scopes=['https://www.googleapis.com/auth/calendar']
         )
         creds = flow.run_local_server(port=0)
