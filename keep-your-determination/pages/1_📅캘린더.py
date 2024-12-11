@@ -53,32 +53,21 @@ def logout():
 
 def login():
     try:
-        # Streamlit Secrets 또는 로컬 파일에서 Google 클라이언트 설정 읽기
-        secrets_file_content = None
-        
-        if "GOOGLE_CLIENT_SECRETS" in st.secrets:
-            secrets_file_content = st.secrets["GOOGLE_CLIENT_SECRETS"]
-        elif os.path.exists("client_secret.json"):
-            with open("client_secret.json", "r") as f:
-                secrets_file_content = f.read()
-        else:
-            st.error("Google 클라이언트 비밀 정보가 설정되지 않았습니다.")
+        # Streamlit Secrets에서 Google 클라이언트 설정 읽기
+        if "GOOGLE_CLIENT_SECRETS" not in st.secrets:
+            st.error("환경 변수 'GOOGLE_CLIENT_SECRETS'가 설정되지 않았습니다.")
             return None
-        
-        # 클라이언트 비밀 JSON 파일 생성
-        with open("client_secret.json", "w") as f:
-            f.write(secrets_file_content)
-        
+
         # OAuth Flow 실행
-        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-            "client_secret.json",
+        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_config(
+            json.loads(st.secrets["GOOGLE_CLIENT_SECRETS"]),
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
         creds = flow.run_local_server(port=0)
         save_credentials_to_file(creds)
         return creds
-    except KeyError:
-        st.error("환경 변수 'GOOGLE_CLIENT_SECRETS'가 설정되지 않았습니다.")
+    except Exception as e:
+        st.error(f"로그인 중 오류가 발생했습니다: {e}")
         return None
 
 # 캘린더 일정 관련 함수
