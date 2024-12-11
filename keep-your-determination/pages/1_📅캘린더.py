@@ -1,25 +1,25 @@
 import json
 import os
 import streamlit as st
-from datetime import datetime, date
+from datetime import datetime, date, time as dt_time
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-import streamlit.components.v1 as components
+import requests
 import time
 
 # Streamlit 설정
-st.set_page_config(page_title="캘린더", page_icon="📅", layout="centered")
-st.title("📅 Google Calendar 관리")
+st.set_page_config(page_title="캘린더", page_icon="\ud83d\udcc5", layout="centered")
+st.title("\ud83d\udcc5 Google Calendar 관리")
 
-# rerun 메서드 생성
+# 상태 기반 새로고침 함수
 def rerun():
-    """
-    Streamlit 페이지를 새로고침하는 메서드.
-    """
-    st.session_state["force_rerun"] = time.time()  # 고유한 값을 사용해 상태를 업데이트하여 페이지 리로드
-    st.query_params.update({"_": st.session_state["force_rerun"]})
+    st.session_state["force_rerun"] = time.time()  # 상태 변경 유도
+
+def clear_all_session_keys():
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
 
 # Google Client Secret 파일 생성
 def create_client_secret_file():
@@ -79,7 +79,7 @@ def login():
             CLIENT_SECRET_FILE,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
-        auth_url, _ = flow.authorization_url(prompt="consent")
+        auth_url, _ = flow.authorization_url(prompt="select_account")  # 계정 선택 강제
         st.write(f"[인증 URL을 클릭하세요]({auth_url})")
         auth_code = st.text_input("인증 코드를 입력하세요:")
         if auth_code:
@@ -91,15 +91,27 @@ def login():
     except Exception as e:
         st.error(f"로그인 중 오류 발생: {e}")
 
+# Google OAuth 토큰 무효화
+def revoke_token():
+    if "credentials" in st.session_state:
+        creds = st.session_state["credentials"]
+        revoke_url = f"https://oauth2.googleapis.com/revoke?token={creds.token}"
+        response = requests.post(revoke_url)
+        if response.status_code == 200:
+            st.success("토큰이 성공적으로 무효화되었습니다.")
+        else:
+            st.error("토큰 무효화 중 오류가 발생했습니다.")
+
 # 로그아웃 함수
 def logout():
     try:
-        if "credentials" in st.session_state:
-            del st.session_state["credentials"]
+        clear_all_session_keys()
         if os.path.exists(CREDENTIALS_FILE):
             os.remove(CREDENTIALS_FILE)
-        st.success("성공적으로 로그아웃되었습니다.")
-        rerun()  # 페이지 새로고침
+        revoke_token()  # 토큰 무효화
+        st.success("성공적으로 로그아웃되었습니다. 브라우저에서 Google 계정을 로그아웃하려면 아래 링크를 클릭하세요.")
+        st.markdown("[Google 로그아웃하기](https://accounts.google.com/Logout)")
+        rerun()
     except Exception as e:
         st.error(f"로그아웃 중 오류 발생: {e}")
 
@@ -119,14 +131,27 @@ def fetch_events(service):
         st.error(f"이벤트를 가져오는 중 오류 발생: {e}")
         return []
 
-def update_event(service, event_id, summary, start_time, end_time, time_zone='Asia/Seoul'):
+def add_event(service, summary, start_datetime, end_datetime, time_zone='Asia/Seoul'):
     try:
         event = {
             'summary': summary,
-            'start': {'dateTime': start_time.isoformat(), 'timeZone': time_zone},
-            'end': {'dateTime': end_time.isoformat(), 'timeZone': time_zone},
+            'start': {'dateTime': start_datetime.isoformat(), 'timeZone': time_zone},
+            'end': {'dateTime': end_datetime.isoformat(), 'timeZone': time_zone},
         }
-        return service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
+        service.events().insert(calendarId='primary', body=event).execute()
+        st.success("일정이 추가되었습니다.")
+    except Exception as e:
+        st.error(f"일정 추가 중 오류 발생: {e}")
+
+def update_event(service, event_id, summary, start_datetime, end_datetime, time_zone='Asia/Seoul'):
+    try:
+        event = {
+            'summary': summary,
+            'start': {'dateTime': start_datetime.isoformat(), 'timeZone': time_zone},
+            'end': {'dateTime': end_datetime.isoformat(), 'timeZone': time_zone},
+        }
+        service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
+        st.success("일정이 수정되었습니다.")
     except Exception as e:
         st.error(f"일정 수정 중 오류 발생: {e}")
 
@@ -136,35 +161,6 @@ def delete_event(service, event_id):
         st.success("일정이 삭제되었습니다.")
     except Exception as e:
         st.error(f"일정 삭제 중 오류 발생: {e}")
-
-def render_fullcalendar(events):
-    try:
-        events_json = [{'title': e['summary'], 'start': e['start'].get('dateTime', e['start'].get('date'))} for e in events]
-        calendar_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.css' rel='stylesheet' />
-          <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js'></script>
-          <script>
-            document.addEventListener('DOMContentLoaded', function() {{
-              var calendarEl = document.getElementById('calendar');
-              var calendar = new FullCalendar.Calendar(calendarEl, {{
-                initialView: 'dayGridMonth',
-                events: {events_json}
-              }});
-              calendar.render();
-            }});
-          </script>
-        </head>
-        <body>
-          <div id='calendar'></div>
-        </body>
-        </html>
-        """
-        components.html(calendar_html, height=600)
-    except Exception as e:
-        st.error(f"캘린더 렌더링 중 오류 발생: {e}")
 
 # 로그인 상태 초기화
 if "credentials" not in st.session_state:
@@ -179,7 +175,7 @@ if st.session_state["credentials"]:
 
     # 캘린더 관리 UI
     events = fetch_events(service)
-    render_fullcalendar(events)
+    st.header("일정 관리")
 
     # 새 일정 추가
     with st.expander("새 일정 추가"):
@@ -192,12 +188,7 @@ if st.session_state["credentials"]:
             try:
                 start_datetime = datetime.combine(start_date, datetime.strptime(start_time, "%H:%M").time())
                 end_datetime = datetime.combine(end_date, datetime.strptime(end_time, "%H:%M").time())
-                service.events().insert(calendarId='primary', body={
-                    'summary': summary,
-                    'start': {'dateTime': start_datetime.isoformat(), 'timeZone': 'Asia/Seoul'},
-                    'end': {'dateTime': end_datetime.isoformat(), 'timeZone': 'Asia/Seoul'},
-                }).execute()
-                st.success("일정이 추가되었습니다.")
+                add_event(service, summary, start_datetime, end_datetime)
             except Exception as e:
                 st.error(f"일정 추가 중 오류 발생: {e}")
 
@@ -223,7 +214,6 @@ if st.session_state["credentials"]:
                         new_start_datetime = datetime.combine(new_start_date, datetime.strptime(new_start_time, "%H:%M").time())
                         new_end_datetime = datetime.combine(new_end_date, datetime.strptime(new_end_time, "%H:%M").time())
                         update_event(service, event_id, new_title, new_start_datetime, new_end_datetime)
-                        st.success("일정이 수정되었습니다.")
                     except Exception as e:
                         st.error(f"일정 수정 중 오류 발생: {e}")
         else:
