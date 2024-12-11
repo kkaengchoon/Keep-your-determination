@@ -53,8 +53,17 @@ def logout():
 
 def login():
     try:
-        # Streamlit Secrets에서 Google 클라이언트 설정 읽기
-        secrets_file_content = st.secrets["GOOGLE_CLIENT_SECRETS"]
+        # Streamlit Secrets 또는 로컬 파일에서 Google 클라이언트 설정 읽기
+        secrets_file_content = None
+        
+        if "GOOGLE_CLIENT_SECRETS" in st.secrets:
+            secrets_file_content = st.secrets["GOOGLE_CLIENT_SECRETS"]
+        elif os.path.exists("client_secret.json"):
+            with open("client_secret.json", "r") as f:
+                secrets_file_content = f.read()
+        else:
+            st.error("Google 클라이언트 비밀 정보가 설정되지 않았습니다.")
+            return None
         
         # 클라이언트 비밀 JSON 파일 생성
         with open("client_secret.json", "w") as f:
